@@ -32,4 +32,5 @@ pom.xml.*
 .idea
 *.iml
 
-test*
+# our test files
+*.dat
