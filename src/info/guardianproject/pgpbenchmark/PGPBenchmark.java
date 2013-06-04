@@ -143,6 +143,7 @@ public class PGPBenchmark extends Activity {
     class JavaEncryptTask extends AsyncTask<Void, Progress, Void> implements ProgressDialogUpdater {
 
         long startTime;
+        long endTime;
         @Override
         protected void onPreExecute() {
             mProgressBar.setVisibility(View.VISIBLE);
@@ -150,7 +151,6 @@ public class PGPBenchmark extends Activity {
             mProgressBar.setProgress(0);
             PGPBenchmark.this.setProgressBarIndeterminateVisibility(true);
             PGPBenchmark.this.setProgressBarIndeterminate(true);
-            startTime = System.nanoTime();
         }
         @Override
         protected Void doInBackground(Void... params) {
@@ -172,8 +172,9 @@ public class PGPBenchmark extends Activity {
                 String signingUserId = BouncyCastleHelper.getMainUserId(BouncyCastleHelper.getMasterKey(senderKeyRing));
                 char[] passphrase = "test".toCharArray();
 
-
+                startTime = System.nanoTime();
                 BouncyCastleHelper.encryptAndSign(this, inputData, outStream, recipient, signingUserId, signer, passphrase);
+                endTime = System.nanoTime();
 
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -197,9 +198,9 @@ public class PGPBenchmark extends Activity {
         }
         @Override
         protected void onPostExecute(Void result) {
+
             mProgressBar.setVisibility(View.INVISIBLE);
             PGPBenchmark.this.setProgressBarIndeterminateVisibility(false);
-            final long endTime = System.nanoTime();
             final long elapsed = (endTime-startTime);
             final long seconds = TimeUnit.SECONDS.convert(elapsed, TimeUnit.NANOSECONDS);
             appendLog(mJavaText, "Complete. " + seconds + " s elapsed");
