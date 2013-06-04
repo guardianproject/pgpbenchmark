@@ -14,6 +14,8 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import info.guardianproject.gpg.GPGCli;
+
 import org.spongycastle.openpgp.PGPException;
 import org.spongycastle.openpgp.PGPPublicKey;
 import org.spongycastle.openpgp.PGPSecretKey;
@@ -113,7 +115,7 @@ public class PGPBenchmark extends Activity {
         }
         mSenderKeyFile = new File( Environment.getExternalStorageDirectory() + "/pgpbenchmark-sender.asc" );
         if( mSenderKeyFile.length() == 0 ) {
-            Log.e(TAG, "Priovate key " + mSenderKeyFile.getAbsolutePath() + " does not exist");
+            Log.e(TAG, "Private key " + mSenderKeyFile.getAbsolutePath() + " does not exist");
             return false;
         }
         return true;
@@ -231,6 +233,67 @@ public class PGPBenchmark extends Activity {
             // we dont use this one
         }
 
+    }
+
+    class NativeEncryptTask extends AsyncTask<Void, Progress, Void> implements ProgressDialogUpdater {
+        long startTime;
+        long endTime;
+        @Override
+        protected void onPreExecute() {
+            enableButtons(false);
+            mProgressBar.setVisibility(View.VISIBLE);
+            mProgressBar.setMax(100);
+            mProgressBar.setProgress(0);
+            PGPBenchmark.this.setProgressBarIndeterminateVisibility(true);
+            PGPBenchmark.this.setProgressBarIndeterminate(true);
+        }
+        @Override
+        protected Void doInBackground(Void... params) {
+
+            GPGCli.getInstance().importKey(mRecipientKeyFile.getAbsolutePath());
+            GPGCli.getInstance().importKey(mSenderKeyFile.getAbsolutePath());
+
+            startTime = System.nanoTime();
+            GPGCli.getInstance().encryptAndSign("randy@example.com", "sandra@example.com", mTestFile, mNativeOutFile);
+            endTime = System.nanoTime();
+
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result) {
+
+            mProgressBar.setVisibility(View.INVISIBLE);
+            PGPBenchmark.this.setProgressBarIndeterminateVisibility(false);
+            final long elapsed = (endTime-startTime);
+            final long seconds = TimeUnit.SECONDS.convert(elapsed, TimeUnit.NANOSECONDS);
+            appendLog(mNativeText, "Complete. " + seconds + " s elapsed");
+            Log.d(TAG, "NativeEncryptTask: done after " + seconds + " seconds");
+            enableButtons(false);
+        }
+
+        @Override
+        protected void onProgressUpdate(Progress... values) {
+            mProgressBar.setMax(values[0].total);
+            mProgressBar.setProgress(values[0].current);
+            appendLog(mNativeText, values[0].message);
+            Log.d(TAG, "NativeEncryptTask: " +values[0].current + "/" + values[0].total +" "+ values[0].message);
+        }
+
+        @Override
+        public void setProgress(String message, int current, int total) {
+            Progress p = new Progress(message, current, total);
+            publishProgress(p);
+        }
+        @Override
+        public void setProgress(int current, int total) {
+            Progress p = new Progress("", current, total);
+            publishProgress(p);
+        }
+
+        @Override
+        public void setProgress(int resourceId, int current, int total) {
+            // we dont use this one
+        }
     }
 
 
