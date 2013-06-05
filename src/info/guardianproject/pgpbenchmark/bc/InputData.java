@@ -1,4 +1,6 @@
-package info.guardianproject.pgpbenchmark;
+package info.guardianproject.pgpbenchmark.bc;
+
+import info.guardianproject.pgpbenchmark.utils.PositionAwareInputStream;
 
 import java.io.InputStream;
 

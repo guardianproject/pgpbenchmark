@@ -16,6 +16,8 @@ import android.widget.TextView;
 
 import info.guardianproject.gpg.GPGCli;
 import info.guardianproject.gpg.GPGKey;
+import info.guardianproject.pgpbenchmark.bc.BouncyCastleHelper;
+import info.guardianproject.pgpbenchmark.bc.InputData;
 
 import org.spongycastle.openpgp.PGPException;
 import org.spongycastle.openpgp.PGPPublicKey;

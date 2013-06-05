@@ -1,6 +1,9 @@
-package info.guardianproject.pgpbenchmark;
+package info.guardianproject.pgpbenchmark.bc;
 
 import android.util.Log;
+
+import info.guardianproject.pgpbenchmark.ProgressDialogUpdater;
+import info.guardianproject.pgpbenchmark.utils.IterableIterator;
 
 import org.spongycastle.bcpg.BCPGOutputStream;
 import org.spongycastle.bcpg.HashAlgorithmTags;

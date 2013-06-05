@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package info.guardianproject.pgpbenchmark;
+package info.guardianproject.pgpbenchmark.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
