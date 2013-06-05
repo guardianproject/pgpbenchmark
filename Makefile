@@ -1,4 +1,4 @@
-all: keys/test_100M.dat pgp-keys
+all: keys/test_100M.dat pgp-keys build
 
 
 keys/test_100M.dat:
@@ -13,5 +13,14 @@ pgp-keys:
 	cd keys/ && test -s pgpbenchmark-sender.sec || GNUPGHOME=. gpg2 --batch --gen-key sender.params
 
 
+build:
+	ant debug
+
 install:
 	ant debug install
+
+test:
+	ant instrument install test
+
+clean:
+	ant clean
