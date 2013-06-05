@@ -92,7 +92,6 @@ public class JavaEncryptTask extends AsyncTask<BenchmarkInput, Progress, Void> i
 
     @Override
     protected void onProgressUpdate(Progress... values) {
-        Log.d(TAG, values[0].current + "/" + values[0].total +" "+ values[0].message);
         updater.onUpdate(values[0]);
 
     }
