@@ -22,4 +22,8 @@ public interface ProgressDialogUpdater {
     void setProgress(int resourceId, int current, int total);
 
     void setProgress(int current, int total);
+
+    void onPre(Progress progress);
+    void onUpdate(Progress progress);
+    void onComplete(Progress progress);
 }
