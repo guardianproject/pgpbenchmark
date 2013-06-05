@@ -1,9 +1,10 @@
+
 package info.guardianproject.pgpbenchmark.bc;
 
-import android.os.AsyncTask;
 import android.util.Log;
 
 import info.guardianproject.pgpbenchmark.BenchmarkInput;
+import info.guardianproject.pgpbenchmark.PGPAsyncTask;
 import info.guardianproject.pgpbenchmark.Progress;
 import info.guardianproject.pgpbenchmark.ProgressDialogUpdater;
 
@@ -21,20 +22,21 @@ import java.security.NoSuchProviderException;
 import java.security.SignatureException;
 import java.util.concurrent.TimeUnit;
 
-public class JavaEncryptTask extends AsyncTask<BenchmarkInput, Progress, Void> implements ProgressDialogUpdater {
+public class JavaEncryptTask extends PGPAsyncTask {
     private final static String TAG = "JavaEncryptTask";
-    long startTime;
-    long endTime;
-    ProgressDialogUpdater updater;
+
+    public JavaEncryptTask() {
+    }
 
     public JavaEncryptTask(ProgressDialogUpdater updater) {
-        this.updater = updater;
+        super(updater);
     }
+
     @Override
     protected void onPreExecute() {
         updater.onPre(null);
-
     }
+
     @Override
     protected Void doInBackground(BenchmarkInput... params) {
         BenchmarkInput data = params[0];
@@ -43,21 +45,23 @@ public class JavaEncryptTask extends AsyncTask<BenchmarkInput, Progress, Void> i
             FileOutputStream outStream = new FileOutputStream(data.mOutFile);
             InputData inputData = new InputData(inStream, data.mTestFile.length());
 
-
-            FileInputStream pubKeyIn = new FileInputStream( data.mRecipientKeyFile );
-            FileInputStream senderKeyIn = new FileInputStream( data.mSenderKeyFile );
+            FileInputStream pubKeyIn = new FileInputStream(data.mRecipientKeyFile);
+            FileInputStream senderKeyIn = new FileInputStream(data.mSenderKeyFile);
 
             PGPPublicKey recipient = BouncyCastleHelper.importPublicKeyForEncryption(pubKeyIn);
-            publishProgress(new Progress("Encrypting+signing a " + data.mTestSizeMegs + " megabyte file", 0, 100));
+            publishProgress(new Progress("Encrypting+signing a " + data.mTestSizeMegs
+                    + " megabyte file", 0, 100));
             publishProgress(new Progress("Extracting signature key", 0, 100));
             PGPSecretKeyRing senderKeyRing = BouncyCastleHelper.importSecretKeyRing(senderKeyIn);
             PGPSecretKey signer = BouncyCastleHelper.importSecretKeyForSigning(senderKeyRing);
 
-            String signingUserId = BouncyCastleHelper.getMainUserId(BouncyCastleHelper.getMasterKey(senderKeyRing));
+            String signingUserId = BouncyCastleHelper.getMainUserId(BouncyCastleHelper
+                    .getMasterKey(senderKeyRing));
             char[] passphrase = "test".toCharArray();
 
             startTime = System.nanoTime();
-            BouncyCastleHelper.encryptAndSign(this, inputData, outStream, recipient, signingUserId, signer, passphrase);
+            BouncyCastleHelper.encryptAndSign(this, inputData, outStream, recipient, signingUserId,
+                    signer, passphrase);
             endTime = System.nanoTime();
 
         } catch (FileNotFoundException e) {
@@ -80,10 +84,11 @@ public class JavaEncryptTask extends AsyncTask<BenchmarkInput, Progress, Void> i
         }
         return null;
     }
+
     @Override
     protected void onPostExecute(Void result) {
         Progress p = new Progress("", 100, 100);
-        final long elapsed = (endTime-startTime);
+        final long elapsed = (endTime - startTime);
         final long seconds = TimeUnit.SECONDS.convert(elapsed, TimeUnit.NANOSECONDS);
         Log.d(TAG, "done after " + seconds + " seconds");
         p.elapsed = seconds;
@@ -101,6 +106,7 @@ public class JavaEncryptTask extends AsyncTask<BenchmarkInput, Progress, Void> i
         Progress p = new Progress(message, current, total);
         publishProgress(p);
     }
+
     @Override
     public void setProgress(int current, int total) {
         Progress p = new Progress("", current, total);
@@ -111,17 +117,20 @@ public class JavaEncryptTask extends AsyncTask<BenchmarkInput, Progress, Void> i
     public void setProgress(int resourceId, int current, int total) {
         // we dont use this one
     }
+
     @Override
     public void onPre(Progress progress) {
-     // we dont use this one
+        // we dont use this one
     }
+
     @Override
     public void onUpdate(Progress progress) {
-     // we dont use this one
+        // we dont use this one
     }
+
     @Override
     public void onComplete(Progress progress) {
-     // we dont use this one
+        // we dont use this one
     }
 
 }

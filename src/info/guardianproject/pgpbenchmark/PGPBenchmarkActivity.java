@@ -18,7 +18,7 @@ import info.guardianproject.pgpbenchmark.bc.JavaEncryptTask;
 
 import java.io.File;
 
-public class PGPBenchmark extends Activity implements ProgressDialogUpdater {
+public class PGPBenchmarkActivity extends Activity implements ProgressDialogUpdater {
     private final static String TAG = "PGPBenchmark";
     private final static int TEST_SIZE_MB = 100;
     TextView mJavaText;
@@ -43,7 +43,7 @@ public class PGPBenchmark extends Activity implements ProgressDialogUpdater {
 
         mJavaText = (TextView) findViewById(R.id.javaView);
         mNativeText = (TextView) findViewById(R.id.nativeView);
-        mJavaButton= (Button) findViewById(R.id.javaButton);
+        mJavaButton = (Button) findViewById(R.id.javaButton);
         mNativeButton = (Button) findViewById(R.id.nativeButton);
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
 
@@ -73,7 +73,7 @@ public class PGPBenchmark extends Activity implements ProgressDialogUpdater {
 
     private void javaEncrypt() {
 
-        if( !prepare()) {
+        if (!prepare()) {
             Log.d(TAG, "javaEncrypt: prepare failed");
             return;
         }
@@ -88,8 +88,9 @@ public class PGPBenchmark extends Activity implements ProgressDialogUpdater {
 
         new JavaEncryptTask(this).execute(input);
     }
+
     private void nativeEncrypt() {
-        if( !prepare()) {
+        if (!prepare()) {
             Log.d(TAG, "nativeEncrypt: prepare failed");
             return;
         }
@@ -111,27 +112,32 @@ public class PGPBenchmark extends Activity implements ProgressDialogUpdater {
 
     private boolean prepare() {
         int megabytes = TEST_SIZE_MB;
-        int size = megabytes * 1024* 1024;
-        mTestFile = new File ( Environment.getExternalStorageDirectory().getAbsolutePath() + "/test_" + megabytes + "M.dat");
-        if( mTestFile.length() != size) {
+        int size = megabytes * 1024 * 1024;
+        mTestFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/test_"
+                + megabytes + "M.dat");
+        if (mTestFile.length() != size) {
             Log.e(TAG, "Testfile error: " + mTestFile.getAbsolutePath() + " size=" + size);
             return false;
         }
 
-        mJavaOutFile = new File ( Environment.getExternalStorageDirectory() + "/test_" + megabytes + "M.dat.java.gpg");
-        mNativeOutFile = new File ( Environment.getExternalStorageDirectory() + "/test_" + megabytes + "M.dat.native.gpg");
+        mJavaOutFile = new File(Environment.getExternalStorageDirectory() + "/test_" + megabytes
+                + "M.dat.java.gpg");
+        mNativeOutFile = new File(Environment.getExternalStorageDirectory() + "/test_" + megabytes
+                + "M.dat.native.gpg");
 
-        if( mNativeOutFile.exists() ) {
+        if (mNativeOutFile.exists()) {
             mNativeOutFile.delete();
         }
 
-        mRecipientKeyFile = new File( Environment.getExternalStorageDirectory() + "/pgpbenchmark-recipient.pub.asc" );
-        if( mRecipientKeyFile.length() == 0 ) {
+        mRecipientKeyFile = new File(Environment.getExternalStorageDirectory()
+                + "/pgpbenchmark-recipient.pub.asc");
+        if (mRecipientKeyFile.length() == 0) {
             Log.e(TAG, "Public key " + mRecipientKeyFile.getAbsolutePath() + " does not exist");
             return false;
         }
-        mSenderKeyFile = new File( Environment.getExternalStorageDirectory() + "/pgpbenchmark-sender.asc" );
-        if( mSenderKeyFile.length() == 0 ) {
+        mSenderKeyFile = new File(Environment.getExternalStorageDirectory()
+                + "/pgpbenchmark-sender.asc");
+        if (mSenderKeyFile.length() == 0) {
             Log.e(TAG, "Private key " + mSenderKeyFile.getAbsolutePath() + " does not exist");
             return false;
         }
@@ -139,11 +145,11 @@ public class PGPBenchmark extends Activity implements ProgressDialogUpdater {
     }
 
     private void appendLog(TextView view, String msg) {
-        if( msg.length() == 0 )
+        if (msg.length() == 0)
             return;
 
         String status = view.getText().toString();
-        status += msg +"\n";
+        status += msg + "\n";
         view.setText(status);
     }
 
@@ -171,8 +177,8 @@ public class PGPBenchmark extends Activity implements ProgressDialogUpdater {
         mProgressBar.setVisibility(View.VISIBLE);
         mProgressBar.setMax(100);
         mProgressBar.setProgress(0);
-        PGPBenchmark.this.setProgressBarIndeterminateVisibility(true);
-        PGPBenchmark.this.setProgressBarIndeterminate(true);
+        PGPBenchmarkActivity.this.setProgressBarIndeterminateVisibility(true);
+        PGPBenchmarkActivity.this.setProgressBarIndeterminate(true);
     }
 
     @Override
@@ -185,11 +191,10 @@ public class PGPBenchmark extends Activity implements ProgressDialogUpdater {
     @Override
     public void onComplete(Progress progress) {
         mProgressBar.setVisibility(View.INVISIBLE);
-        PGPBenchmark.this.setProgressBarIndeterminateVisibility(false);
+        PGPBenchmarkActivity.this.setProgressBarIndeterminateVisibility(false);
 
         appendLog(mActiveText, "Complete. " + progress.elapsed + " s elapsed");
         enableButtons(true);
     }
-
 
 }
