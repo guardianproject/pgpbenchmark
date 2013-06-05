@@ -9,6 +9,9 @@ deploy:
 	adb push keys/pgpbenchmark-recipient.pub /sdcard/pgpbenchmark-recipient.pub.asc
 
 pgp-keys:
-	cd keys/ && test -s pgpbenchmark-recipient.sec || gpg --batch --gen-key receiver.params
-	cd keys/ && test -s pgpbenchmark-sender.sec || gpg --batch --gen-key sender.params
+	cd keys/ && test -s pgpbenchmark-recipient.sec || GNUPGHOME=. gpg2 --batch --gen-key receiver.params
+	cd keys/ && test -s pgpbenchmark-sender.sec || GNUPGHOME=. gpg2 --batch --gen-key sender.params
 
+
+install:
+	ant debug install

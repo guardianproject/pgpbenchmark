@@ -4,8 +4,9 @@ Key-Length: 2048
 Subkey-Type: RSA
 Subkey-Length: 2048
 Name-Real: Sandra Sender
-Name-Comment: no pin
+Name-Comment: pin=test
 Name-Email: sandra@example.com
+Passphrase: test
 Expire-Date: 0
 %pubring pgpbenchmark-sender.pub
 %secring pgpbenchmark-sender.sec

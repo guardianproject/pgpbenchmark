@@ -1,5 +1,7 @@
 package info.guardianproject.gpg;
 
+import android.util.Log;
+
 public class GPGRecord {
 
     public enum Type {
@@ -91,6 +93,8 @@ public class GPGRecord {
             key.type = Type.TrustDatabaseInformation;
         } else if(type.equals("spk")) {
             key.type = Type.SignatureSubpacket;
+        } else {
+            Log.e("GPGRecord", "UKNOWN TYPE:" + type);
         }
 
         if(fields[1].length() > 0) {

@@ -15,6 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import info.guardianproject.gpg.GPGCli;
+import info.guardianproject.gpg.GPGKey;
 
 import org.spongycastle.openpgp.PGPException;
 import org.spongycastle.openpgp.PGPPublicKey;
@@ -93,7 +94,17 @@ public class PGPBenchmark extends Activity {
         new JavaEncryptTask().execute();
     }
     private void nativeEncrypt() {
-        Log.d(TAG, "nativeEncrypt: NYI");
+        if( !prepare()) {
+            Log.d(TAG, "nativeEncrypt: prepare failed");
+            return;
+        }
+
+        new NativeEncryptTask().execute();
+    }
+
+    private void enableButtons(boolean enabled) {
+        mJavaButton.setEnabled(enabled);
+        mNativeButton.setEnabled(enabled);
     }
 
     private boolean prepare() {
@@ -107,6 +118,10 @@ public class PGPBenchmark extends Activity {
 
         mJavaOutFile = new File ( Environment.getExternalStorageDirectory() + "/test_" + megabytes + "M.dat.java.gpg");
         mNativeOutFile = new File ( Environment.getExternalStorageDirectory() + "/test_" + megabytes + "M.dat.native.gpg");
+
+        if( mNativeOutFile.exists() ) {
+            mNativeOutFile.delete();
+        }
 
         mRecipientKeyFile = new File( Environment.getExternalStorageDirectory() + "/pgpbenchmark-recipient.pub.asc" );
         if( mRecipientKeyFile.length() == 0 ) {
@@ -148,6 +163,7 @@ public class PGPBenchmark extends Activity {
         long endTime;
         @Override
         protected void onPreExecute() {
+            enableButtons(false);
             mProgressBar.setVisibility(View.VISIBLE);
             mProgressBar.setMax(100);
             mProgressBar.setProgress(0);
@@ -200,13 +216,13 @@ public class PGPBenchmark extends Activity {
         }
         @Override
         protected void onPostExecute(Void result) {
-
             mProgressBar.setVisibility(View.INVISIBLE);
             PGPBenchmark.this.setProgressBarIndeterminateVisibility(false);
             final long elapsed = (endTime-startTime);
             final long seconds = TimeUnit.SECONDS.convert(elapsed, TimeUnit.NANOSECONDS);
             appendLog(mJavaText, "Complete. " + seconds + " s elapsed");
             Log.d(TAG, "JavaEncryptTask: done after " + seconds + " seconds");
+            enableButtons(true);
         }
 
         @Override
@@ -252,6 +268,12 @@ public class PGPBenchmark extends Activity {
 
             GPGCli.getInstance().importKey(mRecipientKeyFile.getAbsolutePath());
             GPGCli.getInstance().importKey(mSenderKeyFile.getAbsolutePath());
+            for( GPGKey key : GPGCli.getInstance().getPublicKeys() ) {
+                Log.d(TAG, " pubkey " + key.getUserIds().get(0).getEmail());
+            }
+            for( GPGKey key : GPGCli.getInstance().getSecretKeys() ) {
+                Log.d(TAG, " seckey " + key.getUserIds().get(0).getEmail());
+            }
 
             startTime = System.nanoTime();
             GPGCli.getInstance().encryptAndSign("randy@example.com", "sandra@example.com", mTestFile, mNativeOutFile);
@@ -268,7 +290,7 @@ public class PGPBenchmark extends Activity {
             final long seconds = TimeUnit.SECONDS.convert(elapsed, TimeUnit.NANOSECONDS);
             appendLog(mNativeText, "Complete. " + seconds + " s elapsed");
             Log.d(TAG, "NativeEncryptTask: done after " + seconds + " seconds");
-            enableButtons(false);
+            enableButtons(true);
         }
 
         @Override

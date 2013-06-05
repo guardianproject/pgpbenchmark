@@ -1,5 +1,6 @@
 package info.guardianproject.gpg;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -27,13 +28,13 @@ public class GPGCli implements GPGBinding {
     }
 
     private GPGCli() {
-        Log.i("Keymaster", "GPGCli initialized");
+        Log.i("GPGCli", "GPGCli initialized");
     }
 
     @Override
     public GPGKey getPublicKey(String keyId) {
         String rawList = Exec(GPG_PATH, "--with-colons", "--with-fingerprint", "--list-keys", keyId);
-        Log.i("Keymaster", "Got public key: " + keyId);
+        Log.i("GPGCli", "Got public key: " + keyId);
 
         Scanner scanner = new Scanner(rawList);
         GPGKey key = parseKey(scanner, "pub:.*");
@@ -45,7 +46,7 @@ public class GPGCli implements GPGBinding {
     @Override
     public GPGKey getSecretKey(String keyId) {
         String rawList = Exec(GPG_PATH, "--with-colons", "--with-fingerprint", "--list-secret-keys", keyId);
-        Log.i("Keymaster", "Got secret key: " + keyId);
+        Log.i("GPGCli", "Got secret key: " + keyId);
 
         Scanner scanner = new Scanner(rawList);
         GPGKey key = parseKey(scanner, "sec:.*");
@@ -57,7 +58,7 @@ public class GPGCli implements GPGBinding {
     @Override
     public ArrayList<GPGKey> getPublicKeys() {
         String rawList = Exec(GPG_PATH, "--with-colons", "--with-fingerprint", "--list-keys");
-        Log.i("Keymaster", "Got public keys: " + rawList);
+        Log.i("GPGCli", "Got public keys: " + rawList);
 
         ArrayList<GPGKey> keys = new ArrayList<GPGKey>();
         Scanner scanner = new Scanner(rawList);
@@ -73,7 +74,7 @@ public class GPGCli implements GPGBinding {
     @Override
     public ArrayList<GPGKey> getSecretKeys() {
         String rawList = Exec(GPG_PATH, "--with-colons", "--with-fingerprint", "--list-secret-keys");
-        Log.i("Keymaster", "Got secret keys: " + rawList);
+        Log.i("GPGCli", "Got secret keys: " + rawList);
 
         ArrayList<GPGKey> keys = new ArrayList<GPGKey>();
         Scanner scanner = new Scanner(rawList);
@@ -114,21 +115,29 @@ public class GPGCli implements GPGBinding {
         String line = scanner.nextLine();
         GPGRecord parentKey = GPGRecord.FromColonListingFactory(line);
         GPGKey key = new GPGKey(parentKey);
-
-        while(scanner.hasNextLine() && !scanner.hasNext(keyRegex)) {
-            GPGRecord subRecord = GPGRecord.FromColonListingFactory(scanner.nextLine());
-            switch(subRecord.getType()) {
-                case UserId:
-                    key.addUserId(subRecord);
-                    break;
-                case Fingerprint:
-                    //Fingerprint records use the userId field as the fingerprint
-                    key.setFingerprint(subRecord.getUserId());
-                    break;
-                default:
-                    key.addSubKey(subRecord);
-                    break;
+        if( key != null ) {
+            while(scanner.hasNextLine() && !scanner.hasNext(keyRegex)) {
+                String record_line = scanner.nextLine();
+                GPGRecord subRecord = GPGRecord.FromColonListingFactory(record_line);
+                if( subRecord.getType() != null ) {
+                    switch(subRecord.getType()) {
+                        case UserId:
+                            key.addUserId(subRecord);
+                            break;
+                        case Fingerprint:
+                            //Fingerprint records use the userId field as the fingerprint
+                            key.setFingerprint(subRecord.getUserId());
+                            break;
+                        default:
+                            key.addSubKey(subRecord);
+                            break;
+                    }
+                } else {
+                    Log.d(TAG, "got null record: " +record_line);
+                }
             }
+        } else {
+            Log.d(TAG, "Null key: " + line);
         }
 
         return key;
@@ -172,14 +181,14 @@ public class GPGCli implements GPGBinding {
     public void exportPublicKeyring(String destination) {
         String output = Exec(GPG_PATH, "--yes", "--output", destination, "--export");
 
-        Log.i("Keymaster", "Public Keyring exported");
+        Log.i("GPGCli", "Public Keyring exported");
     }
 
     @Override
     public void exportSecretKeyring(String destination) {
         String output = Exec(GPG_PATH, "--yes", "--output", destination, "--export-secret-keys");
 
-        Log.i("Keymaster", "Secret Keyring exported");
+        Log.i("GPGCli", "Secret Keyring exported");
     }
 
     @Override
@@ -187,27 +196,28 @@ public class GPGCli implements GPGBinding {
         String outputPath = new File(destination, keyId + ".gpg").getAbsolutePath();
         Exec(GPG_PATH, "--yes", "--output", outputPath, "--export-secret-keys", keyId);
 
-        Log.i("Keymaster", keyId + " exported to " + outputPath);
+        Log.i("GPGCli", keyId + " exported to " + outputPath);
     }
 
     @Override
     public void importKey(String source) {
-        Exec(GPG_PATH, "--yes", "--allow-secret-key-import", "--import", source);
+        String out = Exec(true, GPG_PATH, "--yes", "--allow-secret-key-import", "--import", source);
+        Log.d(TAG, out);
 
-        Log.i("Keymaster", source + " imported");
+        Log.i("GPGCli", source + " imported");
     }
 
     @Override
     public void pushToKeyServer(String server, String keyId) {
         Exec(GPG_PATH, "--yes", "--key-server", server, "--send-key", keyId);
 
-        Log.i("Keymaster", keyId + " pushed to " + server);
+        Log.i("GPGCli", keyId + " pushed to " + server);
     }
 
     @Override
     public String exportAsciiArmoredKey(String keyId) {
         String output = Exec(GPG_PATH, "--armor", "--export", keyId);
-        Log.i("Keymaster", keyId + " exported");
+        Log.i("GPGCli", keyId + " exported");
 
         return output;
     }
@@ -227,24 +237,40 @@ public class GPGCli implements GPGBinding {
     }
     @Override
     public void encryptAndSign(String recipientId, String signerId, File inputFile, File outputFile) {
-        String output = Exec(GPG_PATH, "--yes", "--recipient", recipientId, "--local-user", signerId, "--sign", "--encrypt", "--output", outputFile.getAbsolutePath(), inputFile.getAbsolutePath());
+        String output = Exec(true, GPG_PATH,
+                "--trust-model", "always",
+                "--batch",
+                "--sign",
+                "--encrypt",
+                "--output", outputFile.getAbsolutePath(),
+                "--local-user", signerId,
+                "--recipient", recipientId,
+                inputFile.getAbsolutePath());
         Log.d(TAG, "encryptAndSign: done " + output);
     }
 
     private String Exec(String... command) {
+        return Exec(false, command);
+    }
+
+    private String Exec(boolean withStderr, String... command) {
         String rawOutput = "";
         try {
+
             ProcessBuilder pb = new ProcessBuilder(command);
+            pb.redirectErrorStream(withStderr);
             Map<String, String> environment = pb.environment();
             environment.put("PATH", environment.get("PATH") + ":/data/data/info.guardianproject.gpg/app_opt/aliases");
             environment.put("LD_LIBRARY_PATH", environment.get("LD_LIBRARY_PATH") + ":/data/data/info.guardianproject.gpg/app_opt/lib:/data/data/info.guardianproject.gpg/lib");
+            Log.d(TAG, TextUtils.join(" ", pb.command()));
             Process p = pb.start();
             p.waitFor();
             rawOutput = getProcessOutput(p);
+
         } catch(IOException e) {
-            Log.e("Keymaster", e.getMessage());
+            Log.e("GPGCli", e.getMessage());
         } catch (InterruptedException e) {
-            Log.e("Keymaster", e.getMessage());
+            Log.e("GPGCli", e.getMessage());
         }
         return rawOutput;
     }
