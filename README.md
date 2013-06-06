@@ -5,7 +5,6 @@ implementation, and the GnuPG native implementation.
 
 Exciting!
 
-
 ## Setup
 
 The benchmark requires
@@ -14,16 +13,21 @@ The benchmark requires
 2) sender private key (to sign)
 3) data to sign/encrypt
 
-To create these:
-
-    make
+These are pre-generated in keys/
 
 To push the generated files to your device/emulator:
 
     make deploy
 
-It assume adb is in your `PATH` and that there's only one device connected. If
+To run the test from the CLI:
+
+    make test
+
+You can run it multiple times to get more data points.
+
+To fetch the test results:
+
+    make fetch-results
+
+It assumes adb is in your `PATH` and that there's only one device connected. If
 you've a more advanced adb setup, then `cat Makefile` and figure it out.
-
-Then you can `ant debug install` away!
-

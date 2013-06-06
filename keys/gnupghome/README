@@ -1,0 +1,12 @@
+
+This was the GNUPGHOME where we generated the keys:
+
+GNUPGHOME=`pwd` gpg-agent --log-file agent.log --verbose --daemon --allow-loopback-pinentry bash
+
+gpg2 --gen-key #receiver key
+gpg2 --gen-key #sender key
+
+gpg2 --batch --pinentry-mode=loopback --passphrase 123 --export-secret-keys randy > ../pgpbenchmark-recipient.sec
+gpg2 --batch --pinentry-mode=loopback --passphrase 123 --export-secret-keys sandra > ../pgpbenchmark-sender.sec
+gpg2 --export randy > ../pgpbenchmark-recipient.pub
+gpg2 --export sandra > ../pgpbenchmark-sender.pub

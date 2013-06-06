@@ -18,6 +18,7 @@ public interface GPGBinding {
 
     void exportKey(String destination, String keyId);
     void importKey(String source);
+    void importKey(String source, String passphrase);
 
     void signKey(String fingerprint, TrustLevel trustLevel);
 
@@ -26,5 +27,5 @@ public interface GPGBinding {
     String exportAsciiArmoredKey(String keyId);
     void importAsciiArmoredKey(String armoredKey);
 
-    void encryptAndSign(String recipientId, String signerId, File inputFile, File outputFile);
+    void encryptAndSign(String recipientId, String signerId, String passphrase, File inputFile, File outputFile);
 }

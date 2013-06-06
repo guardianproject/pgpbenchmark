@@ -5,6 +5,8 @@ import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -28,7 +30,31 @@ public class GPGCli implements GPGBinding {
     }
 
     private GPGCli() {
+        writeGpgConf();
         Log.i("GPGCli", "GPGCli initialized");
+    }
+
+    public void writeGpgConf() {
+
+        String gnupghome = Exec(true, "/data/data/info.guardianproject.gpg/app_opt/aliases/print-gnupghome").trim();
+        Log.d(TAG, "GNUPGHOME="+gnupghome);
+
+//        File gpgconf = new File(gnupghome + "/gpg.conf");
+        File gpgagentconf = new File(gnupghome + "/gpg-agent.conf");
+        Log.d(TAG, gpgagentconf.getAbsolutePath() + " len=" +gpgagentconf.length());
+
+        String logfile= gnupghome+"/agent.log";
+        try {
+            PrintWriter pw = new PrintWriter(new FileOutputStream(gpgagentconf));
+            pw.println("log-file " + logfile);
+            pw.println("debug-level advanced");
+            pw.println("allow-loopback-pinentry");
+            pw.close();
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        Log.d(TAG, "wrote " + gpgagentconf.getAbsolutePath() + ", len=" +gpgagentconf.length());
     }
 
     @Override
@@ -208,6 +234,18 @@ public class GPGCli implements GPGBinding {
     }
 
     @Override
+    public void importKey(String source, String passphrase) {
+        String out = Exec(true, GPG_PATH,
+                "--batch",
+                "--pinentry-mode=loopback",
+                "--passphrase", passphrase,
+                "--allow-secret-key-import", "--import", source);
+        Log.d(TAG, out);
+
+        Log.i("GPGCli", source + " imported");
+    }
+
+    @Override
     public void pushToKeyServer(String server, String keyId) {
         Exec(GPG_PATH, "--yes", "--key-server", server, "--send-key", keyId);
 
@@ -236,10 +274,12 @@ public class GPGCli implements GPGBinding {
         }
     }
     @Override
-    public void encryptAndSign(String recipientId, String signerId, File inputFile, File outputFile) {
+    public void encryptAndSign(String recipientId, String signerId, String passphrase, File inputFile, File outputFile) {
         String output = Exec(true, GPG_PATH,
                 "--trust-model", "always",
                 "--batch",
+                "--pinentry-mode=loopback",
+                "--passphrase", passphrase,
                 "--sign",
                 "--encrypt",
                 "--output", outputFile.getAbsolutePath(),

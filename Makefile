@@ -1,4 +1,4 @@
-all: keys/test_100M.dat pgp-keys build
+all: keys/test_100M.dat build
 
 
 keys/test_100M.dat:
@@ -8,19 +8,18 @@ deploy:
 	adb push keys/pgpbenchmark-sender.sec /sdcard/pgpbenchmark-sender.asc
 	adb push keys/pgpbenchmark-recipient.pub /sdcard/pgpbenchmark-recipient.pub.asc
 
-pgp-keys:
-	cd keys/ && test -s pgpbenchmark-recipient.sec || GNUPGHOME=. gpg2 --batch --gen-key receiver.params
-	cd keys/ && test -s pgpbenchmark-sender.sec || GNUPGHOME=. gpg2 --batch --gen-key sender.params
-
-
 build:
 	ant debug
 
 install:
 	ant debug install
 
-test:
+test: deploy
 	ant instrument install test
+	echo
+	echo
+	adb shell cat /sdcard/pgpbenchmark-report.txt
 
 clean:
 	ant clean
+	adb shell rm /sdcard/pgpbenchmark-report.txt

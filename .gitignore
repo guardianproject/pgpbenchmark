@@ -34,3 +34,5 @@ pom.xml.*
 
 # our test files
 *.dat
+
+*~

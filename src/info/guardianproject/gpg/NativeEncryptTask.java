@@ -29,8 +29,9 @@ public class NativeEncryptTask extends PGPAsyncTask {
     protected Void doInBackground(BenchmarkInput... params) {
         BenchmarkInput data = params[0];
 
-        GPGCli.getInstance().importKey(data.mRecipientKeyFile.getAbsolutePath());
-        GPGCli.getInstance().importKey(data.mSenderKeyFile.getAbsolutePath());
+        String passphrase = "123";
+        GPGCli.getInstance().importKey(data.mRecipientKeyFile.getAbsolutePath(), passphrase);
+        GPGCli.getInstance().importKey(data.mSenderKeyFile.getAbsolutePath(),passphrase);
         for (GPGKey key : GPGCli.getInstance().getPublicKeys()) {
             Log.d(TAG, " pubkey " + key.getUserIds().get(0).getEmail());
         }
@@ -39,7 +40,7 @@ public class NativeEncryptTask extends PGPAsyncTask {
         }
 
         startTime = System.nanoTime();
-        GPGCli.getInstance().encryptAndSign("randy@example.com", "sandra@example.com",
+        GPGCli.getInstance().encryptAndSign("randy@example.com", "sandra@example.com", passphrase,
                 data.mTestFile, data.mOutFile);
         endTime = System.nanoTime();
 

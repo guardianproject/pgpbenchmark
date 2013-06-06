@@ -6,11 +6,17 @@ import android.test.ActivityInstrumentationTestCase2;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public abstract class TaskTest extends ActivityInstrumentationTestCase2<PGPBenchmarkActivity> {
 
+    private static final String REPORT_PATH = "/sdcard/pgpbenchmark-report.txt";
     public TaskTest() {
         super("info.guardianproject.pgpbenchmark", PGPBenchmarkActivity.class);
     }
@@ -55,7 +61,46 @@ public abstract class TaskTest extends ActivityInstrumentationTestCase2<PGPBench
         return true;
     }
 
-    protected int taskTest(final String className, final BenchmarkInput input) {
+    private void reportHeader() throws FileNotFoundException {
+        File reportF = new File(REPORT_PATH);
+        if( !reportF.exists() ) {
+            PrintWriter pw = new PrintWriter( new FileOutputStream(REPORT_PATH));
+            pw.println("Date,Type,Test,Size (MB),Elapsed (s)");
+            pw.close();
+        }
+    }
+
+    private String className(String fullyQualifiedClassName) {
+        return fullyQualifiedClassName.substring(fullyQualifiedClassName.lastIndexOf(".")+1);
+    }
+    private void writeReport(String msg) {
+        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd HH:mm:ss");
+        String timestamp = sdf.format(new Date());
+        String line = timestamp +"," + msg;
+
+        try {
+            reportHeader();
+            PrintWriter pw = new PrintWriter( new FileOutputStream(REPORT_PATH, true));
+            pw.println(line);
+            pw.close();
+            Log.d(TAG, line);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Log.d(TAG, "writing report failed, report was:" + line);
+        }
+    }
+    private void writeReportSuccess(String fullyQualifiedClassName, long elapsed, int size) {
+        final String format = "%s,%s,%s,%s";
+        final String line = String.format(format, className(fullyQualifiedClassName), "encrypt+sign", size, elapsed);
+        writeReport(line);
+    }
+    private void writeReportFailure(String fullyQualifiedClassName, String msg) {
+        final String format = "%s,%s,%s:,%s";
+        final String line = String.format(format, className(fullyQualifiedClassName), "encrypt+sign", "failed", msg);
+        writeReport(line);
+    }
+
+    protected int taskTest(final String fullyQualifiedClassName, final BenchmarkInput input) {
         final CountDownLatch signal = new CountDownLatch(1);
         try {
 
@@ -64,7 +109,7 @@ public abstract class TaskTest extends ActivityInstrumentationTestCase2<PGPBench
                 @Override
                 public void run() {
                     try {
-                        PGPAsyncTask task = (PGPAsyncTask) Class.forName(className).newInstance();
+                        PGPAsyncTask task = (PGPAsyncTask) Class.forName(fullyQualifiedClassName).newInstance();
                         task.setUpdater(this);
                         task.execute(input);
                     } catch (Exception e) {
@@ -105,19 +150,21 @@ public abstract class TaskTest extends ActivityInstrumentationTestCase2<PGPBench
                 @Override
                 public void onComplete(Progress progress) {
                     Log.d(TAG, "test complete: " + progress.elapsed);
+                    writeReportSuccess(fullyQualifiedClassName, progress.elapsed, TEST_SIZE_MB);
                     signal.countDown();
-
                 }
             });
 
             final int timeout = 5;
             if (!signal.await(timeout, TimeUnit.MINUTES)) {
                 String msg = "Test timedout after" + timeout + " minutes";
+                writeReportFailure(fullyQualifiedClassName, msg);
                 Log.d(TAG, msg);
                 return -1;
             }
         } catch (Throwable e) {
             e.printStackTrace();
+            writeReportFailure(fullyQualifiedClassName, e.getMessage());
             return -2;
         }
         return 0;
