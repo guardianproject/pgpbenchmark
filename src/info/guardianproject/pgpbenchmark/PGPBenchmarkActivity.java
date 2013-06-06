@@ -1,7 +1,14 @@
 
 package info.guardianproject.pgpbenchmark;
 
+import info.guardianproject.gpg.GPGCli;
+import info.guardianproject.gpg.NativeEncryptTask;
+import info.guardianproject.pgpbenchmark.bc.JavaEncryptTask;
+
+import java.io.File;
+
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -12,11 +19,6 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-
-import info.guardianproject.gpg.NativeEncryptTask;
-import info.guardianproject.pgpbenchmark.bc.JavaEncryptTask;
-
-import java.io.File;
 
 public class PGPBenchmarkActivity extends Activity implements ProgressDialogUpdater {
     private final static String TAG = "PGPBenchmark";
@@ -46,6 +48,9 @@ public class PGPBenchmarkActivity extends Activity implements ProgressDialogUpda
         mJavaButton = (Button) findViewById(R.id.javaButton);
         mNativeButton = (Button) findViewById(R.id.nativeButton);
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
+
+        // set up environment for gpgcli
+		GPGCli.gnupghome = getDir("gnupghome", Context.MODE_PRIVATE).getAbsoluteFile();
 
         mJavaButton.setOnClickListener(new OnClickListener() {
 
