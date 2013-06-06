@@ -57,7 +57,7 @@ public class JavaEncryptTask extends PGPAsyncTask {
 
             String signingUserId = BouncyCastleHelper.getMainUserId(BouncyCastleHelper
                     .getMasterKey(senderKeyRing));
-            char[] passphrase = "test".toCharArray();
+            char[] passphrase = "123".toCharArray();
 
             startTime = System.nanoTime();
             BouncyCastleHelper.encryptAndSign(this, inputData, outStream, recipient, signingUserId,
