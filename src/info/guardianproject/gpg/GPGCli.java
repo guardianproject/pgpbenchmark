@@ -21,7 +21,13 @@ public class GPGCli implements GPGBinding {
     private static GPGCli instance;
 
     private final String GPG_PATH = "gpg2";
-
+    private String gpgcli_app_opt;
+    private String gpgcli_lib;
+    private String gpgcli_bin;
+    private String path;
+    private String ld_library_path;
+    public static File gnupghome = null;
+    
     public static GPGCli getInstance() {
         if(instance == null) {
             instance = new GPGCli();
@@ -29,14 +35,20 @@ public class GPGCli implements GPGBinding {
         return instance;
     }
 
-    private GPGCli() {
-        writeGpgConf();
+	private GPGCli() {
+		String ldLibraryPath = System.getenv("LD_LIBRARY_PATH");
+		String gpgcli_root = "/data/data/info.guardianproject.gpg";
+		gpgcli_lib = gpgcli_root + "/lib";
+		gpgcli_app_opt = gpgcli_root + "/app_opt";
+		gpgcli_bin = new File(gpgcli_app_opt, "/bin").getAbsolutePath();
+		path = System.getenv("PATH") + ":" + gpgcli_bin;
+		ld_library_path = ldLibraryPath + ":" + gpgcli_app_opt;
+
+    	writeGpgConf();
         Log.i("GPGCli", "GPGCli initialized");
     }
 
     public void writeGpgConf() {
-
-        String gnupghome = Exec(true, "/data/data/info.guardianproject.gpg/app_opt/aliases/print-gnupghome").trim();
         Log.d(TAG, "GNUPGHOME="+gnupghome);
 
 //        File gpgconf = new File(gnupghome + "/gpg.conf");
@@ -300,8 +312,8 @@ public class GPGCli implements GPGBinding {
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.redirectErrorStream(withStderr);
             Map<String, String> environment = pb.environment();
-            environment.put("PATH", environment.get("PATH") + ":/data/data/info.guardianproject.gpg/app_opt/aliases");
-            environment.put("LD_LIBRARY_PATH", environment.get("LD_LIBRARY_PATH") + ":/data/data/info.guardianproject.gpg/app_opt/lib:/data/data/info.guardianproject.gpg/lib");
+            environment.put("PATH", path);
+            environment.put("LD_LIBRARY_PATH", environment.get("LD_LIBRARY_PATH") + ":" + gpgcli_app_opt + "/lib" + ":" + gpgcli_lib);
             Log.d(TAG, TextUtils.join(" ", pb.command()));
             Process p = pb.start();
             p.waitFor();
