@@ -13,21 +13,25 @@ The benchmark requires
 2) sender private key (to sign)
 3) data to sign/encrypt
 
-These are pre-generated in keys/
+The keys are located in `keys/` inside this repo, but the data file needs to be
+generated.
 
-To push the generated files to your device/emulator:
 
-    make deploy
+1. Plug in a device in debug mode
+2. Push the generated files to your device/emulator, generating them if needed
 
-To run the test from the CLI:
+        make deploy
 
-    make test
+3. Run the test from the CLI
 
-You can run it multiple times to get more data points.
+        make test
 
-To fetch the test results:
+    You can run it multiple times to get more data points.
 
-    make fetch-results
+4. To fetch the test results:
+
+        make fetch-results
 
 It assumes adb is in your `PATH` and that there's only one device connected. If
 you've a more advanced adb setup, then `cat Makefile` and figure it out.
+
