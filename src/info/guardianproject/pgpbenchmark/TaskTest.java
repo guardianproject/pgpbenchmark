@@ -1,9 +1,9 @@
 
 package info.guardianproject.pgpbenchmark;
 
-import android.content.Context;
+import android.app.Activity;
 import android.os.Environment;
-import android.test.ActivityInstrumentationTestCase2;
+import android.test.SingleLaunchActivityTestCase;
 import android.util.Log;
 
 import java.io.File;
@@ -15,7 +15,7 @@ import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public abstract class TaskTest extends ActivityInstrumentationTestCase2<PGPBenchmarkActivity> {
+public abstract class TaskTest extends SingleLaunchActivityTestCase<PGPBenchmarkActivity> {
 
     private static final String REPORT_PATH = "/sdcard/pgpbenchmark-report.txt";
     public TaskTest() {
@@ -103,7 +103,7 @@ public abstract class TaskTest extends ActivityInstrumentationTestCase2<PGPBench
 
     protected int taskTest(final String fullyQualifiedClassName, final BenchmarkInput input) {
         final CountDownLatch signal = new CountDownLatch(1);
-        final Context context = getActivity();
+        final Activity context = getActivity();
         try {
 
             runTestOnUiThread(new ProgressRunnable() {
@@ -169,6 +169,8 @@ public abstract class TaskTest extends ActivityInstrumentationTestCase2<PGPBench
             e.printStackTrace();
             writeReportFailure(fullyQualifiedClassName, e.getMessage());
             return -2;
+        } finally {
+            context.finish();
         }
         return 0;
     }
