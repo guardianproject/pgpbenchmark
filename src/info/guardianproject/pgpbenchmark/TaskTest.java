@@ -1,6 +1,7 @@
 
 package info.guardianproject.pgpbenchmark;
 
+import android.content.Context;
 import android.os.Environment;
 import android.test.ActivityInstrumentationTestCase2;
 import android.util.Log;
@@ -102,6 +103,7 @@ public abstract class TaskTest extends ActivityInstrumentationTestCase2<PGPBench
 
     protected int taskTest(final String fullyQualifiedClassName, final BenchmarkInput input) {
         final CountDownLatch signal = new CountDownLatch(1);
+        final Context context = getActivity();
         try {
 
             runTestOnUiThread(new ProgressRunnable() {
@@ -111,7 +113,7 @@ public abstract class TaskTest extends ActivityInstrumentationTestCase2<PGPBench
                     try {
                         PGPAsyncTask task = (PGPAsyncTask) Class.forName(fullyQualifiedClassName).newInstance();
                         task.setUpdater(this);
-                        task.setContext(getActivity());
+                        task.setContext(context);
                         task.execute(input);
                     } catch (Exception e) {
                         e.printStackTrace();
