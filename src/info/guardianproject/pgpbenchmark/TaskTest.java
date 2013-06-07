@@ -111,6 +111,7 @@ public abstract class TaskTest extends ActivityInstrumentationTestCase2<PGPBench
                     try {
                         PGPAsyncTask task = (PGPAsyncTask) Class.forName(fullyQualifiedClassName).newInstance();
                         task.setUpdater(this);
+                        task.setContext(getActivity());
                         task.execute(input);
                     } catch (Exception e) {
                         e.printStackTrace();

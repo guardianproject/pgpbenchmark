@@ -1,6 +1,7 @@
 
 package info.guardianproject.gpg;
 
+import android.content.Context;
 import android.util.Log;
 
 import info.guardianproject.pgpbenchmark.BenchmarkInput;
@@ -13,8 +14,8 @@ import java.util.concurrent.TimeUnit;
 public class NativeEncryptTask extends PGPAsyncTask {
     private final static String TAG = "NativeEncryptTask";
 
-    public NativeEncryptTask(ProgressDialogUpdater updater) {
-        super(updater);
+    public NativeEncryptTask(ProgressDialogUpdater updater, Context c) {
+        super(updater, c);
     }
 
     public NativeEncryptTask() {

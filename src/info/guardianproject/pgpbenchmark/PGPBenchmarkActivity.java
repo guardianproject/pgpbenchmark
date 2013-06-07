@@ -1,12 +1,6 @@
 
 package info.guardianproject.pgpbenchmark;
 
-import info.guardianproject.gpg.GPGCli;
-import info.guardianproject.gpg.NativeEncryptTask;
-import info.guardianproject.pgpbenchmark.bc.JavaEncryptTask;
-
-import java.io.File;
-
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
@@ -19,6 +13,12 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import info.guardianproject.gpg.GPGCli;
+import info.guardianproject.gpg.NativeEncryptTask;
+import info.guardianproject.pgpbenchmark.bc.JavaEncryptTask;
+
+import java.io.File;
 
 public class PGPBenchmarkActivity extends Activity implements ProgressDialogUpdater {
     private final static String TAG = "PGPBenchmark";
@@ -91,7 +91,7 @@ public class PGPBenchmarkActivity extends Activity implements ProgressDialogUpda
         input.mSenderKeyFile = mSenderKeyFile;
         input.mTestSizeMegs = TEST_SIZE_MB;
 
-        new JavaEncryptTask(this).execute(input);
+        new JavaEncryptTask(this, this).execute(input);
     }
 
     private void nativeEncrypt() {
@@ -107,7 +107,7 @@ public class PGPBenchmarkActivity extends Activity implements ProgressDialogUpda
         input.mRecipientKeyFile = mRecipientKeyFile;
         input.mSenderKeyFile = mSenderKeyFile;
         input.mTestSizeMegs = TEST_SIZE_MB;
-        new NativeEncryptTask(this).execute(input);
+        new NativeEncryptTask(this, this).execute(input);
     }
 
     private void enableButtons(boolean enabled) {

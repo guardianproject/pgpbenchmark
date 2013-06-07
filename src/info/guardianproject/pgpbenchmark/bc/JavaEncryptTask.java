@@ -1,6 +1,7 @@
 
 package info.guardianproject.pgpbenchmark.bc;
 
+import android.content.Context;
 import android.util.Log;
 
 import info.guardianproject.pgpbenchmark.BenchmarkInput;
@@ -28,8 +29,8 @@ public class JavaEncryptTask extends PGPAsyncTask {
     public JavaEncryptTask() {
     }
 
-    public JavaEncryptTask(ProgressDialogUpdater updater) {
-        super(updater);
+    public JavaEncryptTask(ProgressDialogUpdater updater, Context c) {
+        super(updater, c);
     }
 
     @Override
