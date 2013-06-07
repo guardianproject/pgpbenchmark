@@ -1,5 +1,6 @@
 package info.guardianproject.gpg;
 
+import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -27,15 +28,16 @@ public class GPGCli implements GPGBinding {
     private String path;
     private String ld_library_path;
     public static File gnupghome = null;
-    
-    public static GPGCli getInstance() {
+
+    public static GPGCli getInstance(Context c) {
         if(instance == null) {
-            instance = new GPGCli();
+            instance = new GPGCli(c);
         }
         return instance;
     }
 
-	private GPGCli() {
+	private GPGCli(Context c) {
+	    gnupghome = c.getDir("gnupg", Context.MODE_PRIVATE );
 		String ldLibraryPath = System.getenv("LD_LIBRARY_PATH");
 		String gpgcli_root = "/data/data/info.guardianproject.gpg";
 		gpgcli_lib = gpgcli_root + "/lib";
@@ -314,6 +316,7 @@ public class GPGCli implements GPGBinding {
             Map<String, String> environment = pb.environment();
             environment.put("PATH", path);
             environment.put("LD_LIBRARY_PATH", environment.get("LD_LIBRARY_PATH") + ":" + gpgcli_app_opt + "/lib" + ":" + gpgcli_lib);
+            environment.put("GNUPGHOME", gnupghome.getAbsolutePath());
             Log.d(TAG, TextUtils.join(" ", pb.command()));
             Process p = pb.start();
             p.waitFor();
